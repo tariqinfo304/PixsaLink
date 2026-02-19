@@ -4,7 +4,7 @@ import api from '../services/api';
 export default function Companies() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', CRN: '', email: '', licenseType: 'limited' });
+  const [form, setForm] = useState({ name: '', CRN: '', email: '', password: '' });
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
@@ -22,23 +22,32 @@ export default function Companies() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    const payload = { name: form.name, CRN: form.CRN, email: form.email || undefined, licenseType: form.licenseType };
     if (editingId) {
+      const payload = { name: form.name, CRN: form.CRN, email: form.email || undefined };
       api.put(`/admin/company/${editingId}`, payload).then(() => {
         fetchCompanies();
         setShowForm(false);
         setEditingId(null);
-        setForm({ name: '', CRN: '', email: '', licenseType: 'limited' });
+        setForm({ name: '', CRN: '', email: '', password: '' });
       }).catch((err) => setError(err.response?.data?.message || 'Failed to update'));
     } else {
       if (!/^\d{10}$/.test(form.CRN)) {
         setError('CRN must be exactly 10 digits');
         return;
       }
+      if (!form.email?.trim()) {
+        setError('Email is required for company login');
+        return;
+      }
+      if (!form.password || form.password.length < 6) {
+        setError('Password is required and must be at least 6 characters');
+        return;
+      }
+      const payload = { name: form.name, CRN: form.CRN, email: form.email.trim(), password: form.password };
       api.post('/admin/create-company', payload).then(() => {
         fetchCompanies();
         setShowForm(false);
-        setForm({ name: '', CRN: '', email: '', licenseType: 'limited' });
+        setForm({ name: '', CRN: '', email: '', password: '' });
       }).catch((err) => setError(err.response?.data?.message || 'Failed to create'));
     }
   };
@@ -50,7 +59,7 @@ export default function Companies() {
 
   const startEdit = (c) => {
     setEditingId(c._id);
-    setForm({ name: c.name, CRN: c.CRN, email: c.email || '', licenseType: c.licenseType || 'limited' });
+    setForm({ name: c.name, CRN: c.CRN, email: c.email || '', password: '' });
     setShowForm(true);
   };
 
@@ -62,7 +71,7 @@ export default function Companies() {
         <h1 className="text-xl font-semibold m-0">Companies</h1>
         <button
           type="button"
-          onClick={() => { setShowForm(true); setEditingId(null); setForm({ name: '', CRN: '', email: '', licenseType: 'limited' }); }}
+          onClick={() => { setShowForm(true); setEditingId(null); setForm({ name: '', CRN: '', email: '', password: '' }); }}
           className="px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:opacity-90"
         >
           Add Company
@@ -81,13 +90,15 @@ export default function Companies() {
             CRN (10 digits) <input value={form.CRN} onChange={(e) => setForm((f) => ({ ...f, CRN: e.target.value }))} required maxLength={10} pattern="\d{10}" disabled={!!editingId} className="w-full mt-1 px-2.5 py-2 border border-gray-300 rounded-md disabled:bg-gray-100" />
           </label>
           <label className="block mb-3 text-sm">
-            Email <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className="w-full mt-1 px-2.5 py-2 border border-gray-300 rounded-md" />
+            Email <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required={!editingId} placeholder="Login email for the company" className="w-full mt-1 px-2.5 py-2 border border-gray-300 rounded-md" />
           </label>
-          <label className="block mb-3 text-sm">
-            License type <select value={form.licenseType} onChange={(e) => setForm((f) => ({ ...f, licenseType: e.target.value }))} className="w-full mt-1 px-2.5 py-2 border border-gray-300 rounded-md"><option value="limited">Limited</option><option value="unlimited">Unlimited</option></select>
-          </label>
+          {!editingId && (
+            <label className="block mb-3 text-sm">
+              Password <input type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required minLength={6} placeholder="Min 6 characters" className="w-full mt-1 px-2.5 py-2 border border-gray-300 rounded-md" />
+            </label>
+          )}
           <div className="flex gap-2 mt-4">
-            <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-md font-medium">Save</button>
+            <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-md font-medium">{editingId ? 'Save' : 'Create Company'}</button>
             <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="px-4 py-2 border border-gray-300 rounded-md bg-white">Cancel</button>
           </div>
         </form>

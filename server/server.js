@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import vendorRoutes from './routes/vendorRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import companyUserRoutes from './routes/companyUserRoutes.js';
 
 connectDB();
 
@@ -18,6 +19,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/company/users', companyUserRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

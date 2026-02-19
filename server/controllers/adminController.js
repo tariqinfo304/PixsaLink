@@ -6,17 +6,35 @@ import { catchAsync } from '../utils/catchAsync.js';
 import { AppError } from '../utils/AppError.js';
 
 export const createCompany = catchAsync(async (req, res, next) => {
-  const { name, CRN, email, licenseType, licenseExpiry } = req.body;
+  const { name, CRN, email, password } = req.body;
   if (!name || !CRN) return next(new AppError('Name and CRN are required.', 400));
   if (!/^\d{10}$/.test(CRN)) return next(new AppError('CRN must be exactly 10 digits.', 400));
+  if (!email?.trim()) return next(new AppError('Email is required for company login.', 400));
+  if (!password) return next(new AppError('Password is required for company login.', 400));
+  if (password.length < 6) return next(new AppError('Password must be at least 6 characters.', 400));
+
   const company = await Company.create({
     name,
     CRN,
-    email: email || undefined,
-    licenseType: licenseType || 'limited',
-    licenseExpiry: licenseExpiry || undefined,
+    email: email.trim().toLowerCase(),
+    licenseType: 'limited',
     createdBy: req.user._id,
   });
+
+  try {
+    await User.create({
+      name: company.name,
+      email: company.email,
+      password,
+      role: 'company',
+      companyId: company._id,
+    });
+  } catch (err) {
+    await Company.findByIdAndDelete(company._id);
+    if (err.code === 11000) return next(new AppError('A user with this email already exists. Use a different email.', 400));
+    throw err;
+  }
+
   res.status(201).json({ status: 'success', data: { company } });
 });
 

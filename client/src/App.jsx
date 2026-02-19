@@ -9,6 +9,7 @@ import IssueLicense from './pages/IssueLicense';
 import Vendors from './pages/Vendors';
 import Payments from './pages/Payments';
 import RegisterUser from './pages/RegisterUser';
+import CompanyUsers from './pages/CompanyUsers';
 
 function AppRoutes() {
   const { token, loading } = useAuth();
@@ -29,6 +30,7 @@ function AppRoutes() {
         <Route path="companies" element={<ProtectedRoute allowedRoles={['super_admin']}><Companies /></ProtectedRoute>} />
         <Route path="issue-license" element={<ProtectedRoute allowedRoles={['super_admin']}><IssueLicense /></ProtectedRoute>} />
         <Route path="users/new" element={<ProtectedRoute allowedRoles={['super_admin']}><RegisterUser /></ProtectedRoute>} />
+        <Route path="team" element={<ProtectedRoute allowedRoles={['company']}><CompanyUsers /></ProtectedRoute>} />
         <Route path="vendors" element={<Vendors />} />
         <Route path="payments" element={<ProtectedRoute allowedRoles={['company', 'direct_client']}><Payments /></ProtectedRoute>} />
       </Route>

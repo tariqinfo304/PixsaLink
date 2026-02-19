@@ -31,7 +31,15 @@ export default function DashboardLayout() {
               <NavLink to="/users/new" className={navClass}>Create User</NavLink>
             </>
           )}
-          {role && role !== 'super_admin' && (
+          {role === 'company' && (
+            <>
+              <NavLink to="/" end className={navClass}>Dashboard</NavLink>
+              <NavLink to="/team" className={navClass}>Team</NavLink>
+              <NavLink to="/vendors" className={navClass}>Vendors</NavLink>
+              <NavLink to="/payments" className={navClass}>Payments</NavLink>
+            </>
+          )}
+          {role === 'direct_client' && (
             <>
               <NavLink to="/" end className={navClass}>Dashboard</NavLink>
               <NavLink to="/vendors" className={navClass}>Vendors</NavLink>
